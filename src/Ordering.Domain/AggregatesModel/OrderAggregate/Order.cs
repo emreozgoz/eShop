@@ -154,17 +154,35 @@ public class Order
 
     public void SetCancelledStatusWhenStockIsRejected(IEnumerable<int> orderStockRejectedItems)
     {
-        if (OrderStatus == OrderStatus.AwaitingValidation)
+        if (OrderStatus == OrderStatus.Paid)
         {
             OrderStatus = OrderStatus.Cancelled;
-
-            var itemsStockRejectedProductNames = OrderItems
-                .Where(c => orderStockRejectedItems.Contains(c.ProductId))
-                .Select(c => c.ProductName);
-
-            var itemsStockRejectedDescription = string.Join(", ", itemsStockRejectedProductNames);
-            Description = $"The product items don't have stock: ({itemsStockRejectedDescription}).";
+            Description = $"The order was cancelled because it was rejected by stock. Order rejected items: {string.Join(", ", orderStockRejectedItems)}";
         }
+        else
+        {
+            StatusChangeException(OrderStatus.Cancelled);
+        }
+    }
+
+    public void SetCompletedStatus()
+    {
+        if (OrderStatus == OrderStatus.Shipped)
+        {
+            OrderStatus = OrderStatus.Complete;
+            Description = "The order was completed successfully.";
+            AddOrderCompletedDomainEvent();
+        }
+        else
+        {
+            StatusChangeException(OrderStatus.Complete);
+        }
+    }
+
+    private void AddOrderCompletedDomainEvent()
+    {
+        var orderCompletedDomainEvent = new OrderCompletedDomainEvent(this);
+        this.AddDomainEvent(orderCompletedDomainEvent);
     }
 
     private void AddOrderStartedDomainEvent(string userId, string userName, int cardTypeId, string cardNumber,

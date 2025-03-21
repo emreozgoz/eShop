@@ -5,6 +5,7 @@ namespace eShop.Ordering.Domain.AggregatesModel.OrderAggregate;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum OrderStatus
 {
+    Complete = 0,
     Submitted = 1,
     AwaitingValidation = 2,
     StockConfirmed = 3,
